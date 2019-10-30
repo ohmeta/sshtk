@@ -1,0 +1,21 @@
+#!/bin/expect  
+
+set password [lindex $argv 0]
+set vcode [lindex $argv 1]
+set username [lindex $argv 2]
+set hostname [lindex $argv 3]
+set timeout 30  
+
+if {[llength $argv] == 0} {
+  send_user "Usage: scriptname password verfied_code username hostname\n"
+  exit 1
+}
+
+spawn ssh $username@$hostname
+
+expect "Password:"  
+send "$password\n"  
+
+expect "Verification code:"
+send "$vcode\n"
+interact 
