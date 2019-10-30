@@ -31,4 +31,10 @@
 **NODE** : 集群节点。  
 
 #### 4.运行  
-{python login_auto.py}  
+```
+python login_auto.py
+```  
+
+
+**注意**：  
+- 千万不要外传，万一被集群管理员封了就......  
