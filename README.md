@@ -17,7 +17,7 @@
 ### 使用步骤：
   
 #### 1. 安装以上依赖库。  
-#### 2. 将master分支下的两个文件放到`cygwin`可访问路径下，如home下。
+#### 2. 将master分支下`bin`的文件放到`cygwin`可访问路径下，如home下。
 #### 3. 编辑器打开`login_auto.py`,并配置以下信息：  
 - ID_code = ""  
 - PASSWORD = ""  
