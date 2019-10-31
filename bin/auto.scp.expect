@@ -1,0 +1,16 @@
+#!/bin/expect
+
+set password [lindex $argv 0]
+set vcode [lindex $argv 1]
+set source_f [lindex $argv 2]
+set target_f [lindex $argv 3]
+set timeout 30
+
+spawn scp -r $source_f $target_f
+
+expect "Password:"
+send "$password\n"
+
+expect "Verification code:"
+send "$vcode\n"
+interact
