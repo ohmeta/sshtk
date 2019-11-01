@@ -9,10 +9,10 @@
 #### 1. 测试终端 `cygwin`  
 #### 2. 依赖包：  
 
-- python 3  
-- pip  
-- pyotp  
-- expect  
+- python3  
+- pip3  
+- pyotp (pip3 install pyotp)  
+- expect  (Linux脚本语言，需要重新安装`cygwin`，选中expect进行安装)
   
 ### 使用步骤：
   
