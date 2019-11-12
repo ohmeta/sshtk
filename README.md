@@ -18,11 +18,27 @@
   
 #### 1. 安装以上依赖库。  
 #### 2. 将master分支下`bin`的文件放到`cygwin`可访问路径下，如home下。
-#### 3. 编辑器打开`login_auto.py`,并配置以下信息：  
-- ID_code = ""  
-- PASSWORD = ""  
-- NODE = "10.225.3.7"  
-- USER = "user.name"  
+#### 3. Usage:  
+
+```
+$ python login_auto.py -i ID_CODE -u user.name -n 10.225.3.7 -p password  
+```  
+
+```
+$ python login_auto.py -h
+usage: login_auto.py [-h] [--USER USER] [--NODE NODE]  
+                     [--PASSWORD PASSWORD] [--ID ID]  
+
+Copy files between local and cluster without OTP  
+  
+optional arguments:  
+  -h, --help            show this help message and exit  
+  --USER USER, -u USER  User name  
+  --NODE NODE, -n NODE  Cluster Node  
+  --PASSWORD PASSWORD, -p PASSWORD  
+                        Password in cluster  
+  --ID ID, -i ID        Identity code  
+```
 
 说明：  
 **ID_code** :此信息来源于邮箱里的个人二维码中的信息,可使用手机浏览器扫描二维码，获取其中的identity信息。  
@@ -30,11 +46,10 @@
 **USER** ： 集群用户名。  
 **NODE** : 集群节点。  
 
-#### 4.运行  
-```
-python login_auto.py
-```  
+#### 4.一键登录  
+  
+将上述命令行加入~/.bashrc中，实现一键登录。   
 
-
+  
 **注意**：  
 - 千万不要外传，万一被集群管理员封了就......  
