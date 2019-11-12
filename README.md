@@ -12,6 +12,7 @@
 - python3  
 - pip3  
 - pyotp (pip3 install pyotp)  
+- configparser (pip3 install configparser)
 - expect  (Linux脚本语言，需要重新安装`cygwin`，选中expect进行安装)
   
 ### 使用步骤：
@@ -21,7 +22,15 @@
 #### 3. Usage:  
 
 ```
+# command line model
 $ python login_auto.py -i ID_CODE -u user.name -n 10.225.3.7 -p password  
+# with configure file
+# 首次登录时：
+$ python login_auto.py -i ID_CODE -u user.name -n 10.225.3.7 -p password -c configure.txt
+
+#再次登录时：
+$ python login_auto.py -u user.name -n 10.225.3.7 -c configure.txt
+
 ```  
 
 ```
@@ -29,7 +38,7 @@ $ python login_auto.py -h
 usage: login_auto.py [-h] [--USER USER] [--NODE NODE]  
                      [--PASSWORD PASSWORD] [--ID ID]  
 
-Copy files between local and cluster without OTP  
+Login cluster without OTP  
   
 optional arguments:  
   -h, --help            show this help message and exit  
@@ -44,7 +53,8 @@ optional arguments:
 **ID_code** :此信息来源于邮箱里的个人二维码中的信息,可使用手机浏览器扫描二维码，获取其中的identity信息。  
 **PASSWORD** : 登录集群的密码。  
 **USER** ： 集群用户名。  
-**NODE** : 集群节点。  
+**NODE** : 集群节点。
+  
 
 #### 4.一键登录  
   
