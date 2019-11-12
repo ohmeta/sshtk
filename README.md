@@ -24,36 +24,39 @@
 ```
 # command line model
 $ python login_auto.py -i ID_CODE -u user.name -n 10.225.3.7 -p password  
+
 # with configure file
 # 首次登录时：
 $ python login_auto.py -i ID_CODE -u user.name -n 10.225.3.7 -p password -c configure.txt
 
-#再次登录时：
+# 再次登录时：
 $ python login_auto.py -u user.name -n 10.225.3.7 -c configure.txt
 
 ```  
 
 ```
 $ python login_auto.py -h
-usage: login_auto.py [-h] [--USER USER] [--NODE NODE]  
-                     [--PASSWORD PASSWORD] [--ID ID]  
 
-Login cluster without OTP  
-  
-optional arguments:  
-  -h, --help            show this help message and exit  
-  --USER USER, -u USER  User name  
-  --NODE NODE, -n NODE  Cluster Node  
-  --PASSWORD PASSWORD, -p PASSWORD  
-                        Password in cluster  
-  --ID ID, -i ID        Identity code  
+usage: login_auto.py [-h] --USER USER [--NODE NODE]
+                     [--PASSWORD PASSWORD] [--ID ID] [--Config CONFIG]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --USER USER, -u USER  User name
+  --NODE NODE, -n NODE  Cluster Node
+  --PASSWORD PASSWORD, -p PASSWORD
+                        Password in cluster
+  --ID ID, -i ID        Identity code
+  --Config CONFIG, -c CONFIG
+                        Configure files
 ```
 
 说明：  
 **ID_code** :此信息来源于邮箱里的个人二维码中的信息,可使用手机浏览器扫描二维码，获取其中的identity信息。  
 **PASSWORD** : 登录集群的密码。  
 **USER** ： 集群用户名。  
-**NODE** : 集群节点。
+**NODE** : 集群节点 (default : 10.225.3.7)。
+**Config** : 配置文件，可随意命名，首次使用时无需存在次文件。
   
 
 #### 4.一键登录  
