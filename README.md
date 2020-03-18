@@ -3,6 +3,10 @@
 ### 介绍：  
 您登录集群时，是否在为双因素验证而苦恼？ 
 
+### 版本说明：v2
+- 弃用expect，采用pexpect，简化脚本
+- 解决终端窗口显示宽度异常的问题。
+
 
 ### 使用说明：
   
@@ -13,7 +17,13 @@
 - pip3  
 - pyotp (pip3 install pyotp)  
 - configparser (pip3 install configparser)
-- expect  (Linux脚本语言，需要重新安装`cygwin`，选中expect进行安装)
+- pexpect
+- struct
+- fcntl
+- termios
+- signal
+
+
   
 ### 使用步骤：
   
