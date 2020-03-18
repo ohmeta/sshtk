@@ -8,11 +8,16 @@ __status__ = "Developing"
 
 
 import pyotp
-import subprocess
+import pexpect
+import struct
+import fcntl
+import termios
+import signal
 import sys
 import os
 import argparse
 import configparser
+
 
 def ArgsParser():
     parser = argparse.ArgumentParser(description="Copy files between local and cluster without OTP\n")
@@ -34,8 +39,8 @@ def ConfigureParser(args):
         secs = cf.sections()
 
         if args.USER in secs:
-            ID_code = cf.get(args.USER,ID_code)
-            PASSWORD = cf.get(args.USER,PASSWORD)
+            ID = cf.get(args.USER,"id_code")
+            pwd = cf.get(args.USER,"password")
         elif args.ID is not None and args.PASSWORD is not None:
             cf.add_section(args.USER)
             cf.set(args.USER,"ID_code",args.ID)
@@ -45,28 +50,40 @@ def ConfigureParser(args):
             print("Need PAASWORD or ID code")
             sys.exit(1)
     if args.PASSWORD is not None:
-        PASSWORD = args.PASSWORD
+        pwd = args.PASSWORD
     if args.ID is not None:
-        ID_code = args.ID
-    return ID_code,PASSWORD
+        ID = args.ID
+    return ID,pwd
 
-def main():
-    args = ArgsParser()
-    USER = args.USER
-    NODE = args.NODE
-    ID_code, PASSWORD = ConfigureParser(args)
-
-    # OTP
-    totp = pyotp.TOTP(ID_code)
-    Verfied_code = totp.now()
-
-    #print(f"Now verified code is: {Verfied_code}")
-
-    cmd_path = os.path.split(os.path.realpath(__file__))[0]
-    cmd = f"expect {cmd_path}/auto.expect {PASSWORD} {Verfied_code} {USER} {NODE}"
-
-    subprocess.call(cmd,shell=True)
+def sigwinch_passthrough (sig, data):
+    s = struct.pack("HHHH", 0, 0, 0, 0)
+    a = struct.unpack('hhhh', fcntl.ioctl(sys.stdout.fileno(),
+        termios.TIOCGWINSZ , s))
+    if not child.closed:
+        child.setwinsize(a[0],a[1])
 
 
-if __name__ == "__main__":
-    main()
+
+args = ArgsParser()
+USER = args.USER
+NODE = args.NODE
+ID_code, PASSWORD = ConfigureParser(args)
+
+
+# OTP
+totp = pyotp.TOTP(ID_code)
+Verfied_code = totp.now()
+
+# auto login using expect module
+child = pexpect.spawn(f'ssh {USER}@{NODE}')
+sigwinch_passthrough(1,2)
+
+child.expect("Password:")
+child.sendline(PASSWORD)
+child.expect("Verification code:")
+child.sendline(Verfied_code)
+signal.signal(signal.SIGWINCH, sigwinch_passthrough)
+
+child.interact()
+sys.exit()
+
