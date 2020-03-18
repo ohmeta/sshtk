@@ -12,9 +12,12 @@
   
 #### 1. 测试终端 `cygwin`  
 #### 2. 依赖包：  
-
+  
+softwares
 - python3  
 - pip3  
+  
+Packages in python:
 - pyotp (pip3 install pyotp)  
 - configparser (pip3 install configparser)
 - pexpect
