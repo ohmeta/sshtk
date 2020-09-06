@@ -23,26 +23,33 @@ import configparser
 DEFAULT_CONFIG = os.path.join(os.path.expanduser("~"), ".sshtkrc")
 
 
-def generate_config(args, unknown):
+def config_func(args, unknown):
     """
     generate config
     if node on config, config will update
     """
-    config = configparser.ConfigParser()
+    conf = configparser.ConfigParser()
 
     if os.path.exists(args.config):
         print(f"{args.config} exists, updating config")
-        config.read(args.config)
+        conf.read(args.config)
     else:
         print(f"{args.config} is not exists, generating config")
 
-    config[f"{args.user}@{args.node}"] = {
+    tunel = ""
+    if not args.tunel is None:
+        tunel = ",".join(args.tunel)
+
+    conf[f"{args.user}@{args.node}"] = {
         "password": args.password,
         "code": args.code,
+        "tunel": tunel,
     }
 
     with open(args.config, "w") as config_file:
-        config.write(config_file)
+        conf.write(config_file)
+
+    print(f"please see {args.config} for details")
 
 
 def sigwinch_passthrough(sig, data):
@@ -51,15 +58,38 @@ def sigwinch_passthrough(sig, data):
     return a
 
 
-def login(args, unknown):
-    """
-    login node
-    """
-    print(f"now login to {args.user}@{args.node}")
+def run_ssh(cmd, password, code, otp):
+    # auto login using expect module
+    child = pexpect.spawn(cmd)
+
+    # control window size
+    window_size = sigwinch_passthrough(1, 2)
+    if not child.closed:
+        child.setwinsize(window_size[0], window_size[1])
+
+    child.expect("Password:")
+    child.sendline(password)
+
+    if otp:
+        totp = pyotp.TOTP(code)
+        code = totp.now()
+
+        child.expect("Verification code:")
+        child.sendline(code)
+        signal.signal(signal.SIGWINCH, sigwinch_passthrough)
+
+    child.interact()
+    # sys.exit()
+
+
+def parse(args, do_tunel=False):
 
     machine = f"{args.user}@{args.node}"
+    print(f"{machine}")
+
     password = ""
     code = ""
+    tunel = []
     use_config = False
 
     if not args.password is None:
@@ -79,6 +109,16 @@ def login(args, unknown):
             print(f"code is empty, using configed in {args.config}")
             use_config = True
 
+    if do_tunel:
+        if not args.tunel is None:
+            tunel = args.tunel
+            if args.verbose:
+                for i in tunel:
+                    print(f"tunel in input is {i}")
+            else:
+                print(f"tunel is empty, using configed in {args.config}")
+                use_config = True
+
     if use_config:
         config = configparser.ConfigParser()
 
@@ -93,6 +133,7 @@ def login(args, unknown):
                     print(f"password in {args.config} is {password}")
                     if args.otp:
                         print(f"code in {args.config} is {code}")
+                tunel = config[machine]["tunel"].split(",")
             else:
                 print(
                     f"""
@@ -110,27 +151,26 @@ def login(args, unknown):
             )
             sys.exit()
 
-    # auto login using expect module
-    child = pexpect.spawn(f"ssh {machine}")
+    return machine, password, code, args.otp, tunel
 
-    # control window size
-    window_size = sigwinch_passthrough(1, 2)
-    if not child.closed:
-        child.setwinsize(window_size[0], window_size[1])
 
-    child.expect("Password:")
-    child.sendline(password)
+def login_func(args, unknown):
+    """
+    login node
+    """
+    machine, password, code, otp, tunel = parse(args, False)
+    run_ssh(f"""ssh {machine}""", password, code, otp)
 
-    if args.otp:
-        totp = pyotp.TOTP(code)
-        code = totp.now()
 
-        child.expect("Verification code:")
-        child.sendline(code)
-        signal.signal(signal.SIGWINCH, sigwinch_passthrough)
-
-    child.interact()
-    sys.exit()
+def tunel_func(args, unknown):
+    """
+    tunel node
+    """
+    machine, password, code, otp, tunel = parse(args, True)
+    if not tunel is None:
+        for i in tunel:
+            cmd = f"""ssh -N -f -L {i} {machine}"""
+            run_ssh(cmd, password, code, otp)
 
 
 def parse_args():
@@ -167,16 +207,6 @@ def parse_args():
         help="node",
     )
     common_parser.add_argument(
-        "--tunel",
-        "-t",
-        dest="tunel",
-        type=str,
-        nargs="?",
-        default="ssh tunel",
-        help="ssh forward remote specific port by ssh tunel",
-    )
-
-    common_parser.add_argument(
         "--config",
         "-f",
         dest="config",
@@ -184,9 +214,12 @@ def parse_args():
         default=DEFAULT_CONFIG,
         help=f"config file, default: {DEFAULT_CONFIG}",
     )
+    common_parser.add_argument(
+        "--tunel", "-t", dest="tunel", nargs="+", help="ssh tunel"
+    )
 
-    login_parser = argparse.ArgumentParser(add_help=False)
-    login_parser.add_argument(
+    bool_parser = argparse.ArgumentParser(add_help=False)
+    bool_parser.add_argument(
         "--otp",
         "-o",
         dest="otp",
@@ -194,7 +227,7 @@ def parse_args():
         default=True,
         help="login with One Time Password, default: True",
     )
-    login_parser.add_argument(
+    bool_parser.add_argument(
         "--verbose",
         dest="verbose",
         action="store_true",
@@ -205,23 +238,30 @@ def parse_args():
     subparsers = parser.add_subparsers(title="available subcommands", metavar="")
 
     parser_config = subparsers.add_parser(
-        "generate-config",
+        "config",
         parents=[common_parser],
-        prog="sshtk generate-config",
-        help=f"sshtk generate config file on {DEFAULT_CONFIG}",
+        prog="sshtk config",
+        help=f"sshtk generate config file, default on: {DEFAULT_CONFIG}",
     )
-    parser_config.set_defaults(func=generate_config)
+    parser_config.set_defaults(func=config_func)
 
     parser_login = subparsers.add_parser(
         "login",
-        parents=[common_parser, login_parser],
+        parents=[common_parser, bool_parser],
         prog="sshtk login",
         help="sshtk login specific node, support password and OTP",
     )
-    parser_login.set_defaults(func=login)
+    parser_login.set_defaults(func=login_func)
+
+    parser_tunel = subparsers.add_parser(
+        "tunel",
+        parents=[common_parser, bool_parser],
+        prog="sshtk tunel",
+        help="sshtk tunel specific node, support password and OTP",
+    )
+    parser_tunel.set_defaults(func=tunel_func)
 
     args, unknown = parser.parse_known_args()
-
     try:
         if args.version:
             print("sshtk version %s" % __version__)
