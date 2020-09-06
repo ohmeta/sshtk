@@ -61,7 +61,8 @@ code = <code>
 tunel =
 
 # config with OTP support, and add tunel, tunel can have multi instance
-$ sshtk.py config --user <user> --node <node> --password <password> --code <code> --tunel <port1:node1:port2> <port3:node2:port4>
+$ sshtk.py config --user <user> --node <node> --password <password> --code <code> \
+                  --tunel <port1:node1:port2> <port3:node2:port4>
 
 $ cat ~/.sshtkrc
 [<user>@<node>]
@@ -90,13 +91,16 @@ sshtk.py login --user <user> --node <node>
 
 ```
 # supply user, node, password
-$ sshtk.py tunel --user <user> --node <node> --password <password> --tunel <port1:node1:port2> <port3:node2:port4>
+$ sshtk.py tunel --user <user> --node <node> --password <password> \
+                 --tunel <port1:node1:port2> <port3:node2:port4>
 
 # supply user, node, password, code with OTP support
-$ sshtk.py tunel --user <user> --node <node> --password <password> --code <code> --tunel <port1:node1:port2> <port3:node2:port4>
+$ sshtk.py tunel --user <user> --node <node> --password <password> --code <code> \
+                 --tunel <port1:node1:port2> <port3:node2:port4>
 
 # use spefic config file
-$ sshtk.py tunel --user <user> --node <node> --config <config> --tunel <port1:node1:port2> <port3:node2:port4>
+$ sshtk.py tunel --user <user> --node <node> --config <config> \
+                 --tunel <port1:node1:port2> <port3:node2:port4>
 
 # us default config file (recommanded)
 sshtk.py tunel --user <user> --node <node>
@@ -104,10 +108,10 @@ sshtk.py tunel --user <user> --node <node>
 
 ##### 备注：
 
-**user** ： 集群用户名
-**node** : 集群节点 (default : `10.225.3.7`)
-**password** : 登录集群的密码
-**code** :此信息来源于邮箱里的个人二维码中的信息,可使用手机浏览器扫描二维码，获取其中的 identity 信息
+**user** ： 集群用户名  
+**node** : 集群节点 (default : `10.225.3.7`)  
+**password** : 登录集群的密码  
+**code** :此信息来源于邮箱里的个人二维码中的信息,可使用手机浏览器扫描二维码，获取其中的 identity 信息  
 **config** : 配置文件，可随意命名，默认是 `~/.sshtkrc`
 
 ##### 一键登录
