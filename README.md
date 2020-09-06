@@ -1,81 +1,119 @@
-## 自动验证双因素，并登录集群  
-  
-### 介绍：  
-您登录集群时，是否在为双因素验证而苦恼？ 
+# sshtk
 
-### 版本说明：v2
-- 弃用expect，采用pexpect，简化脚本
+## 介绍：
+
+您登录集群时，是否在为双因素验证而苦恼？
+
+## 版本说明：v2
+
+- 弃用 expect，采用 pexpect，简化脚本
 - 解决终端窗口显示宽度异常的问题。
 
+## 使用说明：
 
-### 使用说明：
-  
-#### 1. 测试终端 `cygwin`  
-#### 2. 依赖包：  
-  
-softwares
-- python3  
-- pip3  
-  
-Packages in python:
-- pyotp (pip3 install pyotp)  
-- configparser (pip3 install configparser)
-- pexpect
-- struct
-- fcntl
-- termios
-- signal
+### 安装：
 
-
-  
-### 使用步骤：
-  
-#### 1. 安装以上依赖库。  
-#### 2. 将master分支下`bin`的文件放到`cygwin`可访问路径下，如home下。
-#### 3. Usage:  
+#### 解决依赖
 
 ```
-# command line model
-$ python login_auto.py -i ID_CODE -u user.name -n 10.225.3.7 -p password  
+conda create -n sshtk python=3.7 mamba
+conda install -n sshtk pyotp
+```
 
-# with configure file
-# 首次登录时：
-$ python login_auto.py -i ID_CODE -u user.name -n 10.225.3.7 -p password -c configure.txt
-
-# 再次登录时：
-$ python login_auto.py -u user.name -n 10.225.3.7 -c configure.txt
-
-```  
+#### Usage:
 
 ```
-$ python login_auto.py -h
+usage: sshtk [-h] [-v]  ...
 
-usage: login_auto.py [-h] --USER USER [--NODE NODE]
-                     [--PASSWORD PASSWORD] [--ID ID] [--Config CONFIG]
+ssh toolkit
 
 optional arguments:
-  -h, --help            show this help message and exit
-  --USER USER, -u USER  User name
-  --NODE NODE, -n NODE  Cluster Node
-  --PASSWORD PASSWORD, -p PASSWORD
-                        Password in cluster
-  --ID ID, -i ID        Identity code
-  --Config CONFIG, -c CONFIG
-                        Configure files
+-h, --help     show this help message and exit
+-v, --version  print software version and exit
+
+available subcommands:
+
+config       sshtk generate config file, default on: ~/.sshtkrc
+login        sshtk login specific node, support password and OTP
+tunel        sshtk tunel specific node, support password and OTP
+
 ```
 
-说明：  
-**ID_code** :此信息来源于邮箱里的个人二维码中的信息,可使用手机浏览器扫描二维码，获取其中的identity信息。  
-**PASSWORD** : 登录集群的密码。  
-**USER** ： 集群用户名。  
-**NODE** : 集群节点 (default : 10.225.3.7)。
-**Config** : 配置文件，可随意命名，首次使用时无需存在次文件。
-  
+##### config
 
-#### 4.一键登录  
-  
-将上述命令行加入~/.bashrc中，实现一键登录。   
+```
+# config without OTP support
+$ sshtk.py config --user <user> --node <node> --password <password>
 
-  
-**注意**：  
-- 千万不要外传，万一被集群管理员封了就......  
+$ cat ~/.sshtkrc
+[<user>@<node>]
+password = <password>
+code =
+tunel =
+
+# config with OTP support
+$ sshtk.py config --user <user> --node <node> --password <password> --code <code>
+
+$ cat ~/.sshtkrc
+[<user>@<node>]
+password = <password>
+code = <code>
+tunel =
+
+# config with OTP support, and add tunel, tunel can have multi instance
+$ sshtk.py config --user <user> --node <node> --password <password> --code <code> --tunel <port1:node1:port2> <port3:node2:port4>
+
+$ cat ~/.sshtkrc
+[<user>@<node>]
+password = <password>
+code = <code>
+tunel = <port1:node1:port2>,<port3:node2:port4>
+```
+
+##### login
+
+```
+# supply user, node, password
+$ sshtk.py login --user <user> --node <node> --password <password>
+
+# supply user, node, password, code with OTP support
+$ sshtk.py login --user <user> --node <node> --password <password> --code <code>
+
+# use spefic config file
+$ sshtk.py login --user <user> --node <node> --config <config>
+
+# us default config file (recommanded)
+sshtk.py login --user <user> --node <node>
+```
+
+##### tunel
+
+```
+# supply user, node, password
+$ sshtk.py tunel --user <user> --node <node> --password <password> --tunel <port1:node1:port2> <port3:node2:port4>
+
+# supply user, node, password, code with OTP support
+$ sshtk.py tunel --user <user> --node <node> --password <password> --code <code> --tunel <port1:node1:port2> <port3:node2:port4>
+
+# use spefic config file
+$ sshtk.py tunel --user <user> --node <node> --config <config> --tunel <port1:node1:port2> <port3:node2:port4>
+
+# us default config file (recommanded)
+sshtk.py tunel --user <user> --node <node>
+```
+
+##### 备注：
+
+**user** ： 集群用户名
+**node** : 集群节点 (default : `10.225.3.7`)
+**password** : 登录集群的密码
+**code** :此信息来源于邮箱里的个人二维码中的信息,可使用手机浏览器扫描二维码，获取其中的 identity 信息
+**config** : 配置文件，可随意命名，默认是 `~/.sshtkrc`
+
+##### 一键登录
+
+将上述命令行加入~/.bashrc 中，实现一键登录。
+
+**注意**：
+
+- 千万不要外传，万一被集群管理员封了就......
