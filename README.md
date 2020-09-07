@@ -36,6 +36,7 @@ available subcommands:
 config       sshtk generate config file, default on: ~/.sshtkrc
 login        sshtk login specific node, support password and OTP
 tunel        sshtk tunel specific node, support password and OTP
+scp          sshtk scp remote files, support password and OTP
 
 ```
 
@@ -92,18 +93,38 @@ sshtk.py login --user <user> --node <node>
 ```
 # supply user, node, password
 $ sshtk.py tunel --user <user> --node <node> --password <password> \
-                 --tunel <port1:node1:port2> <port3:node2:port4>
+                 <port1:node1:port2> <port3:node2:port4>
 
 # supply user, node, password, code with OTP support
 $ sshtk.py tunel --user <user> --node <node> --password <password> --code <code> \
-                 --tunel <port1:node1:port2> <port3:node2:port4>
+                 <port1:node1:port2> <port3:node2:port4>
 
 # use spefic config file
 $ sshtk.py tunel --user <user> --node <node> --config <config> \
-                 --tunel <port1:node1:port2> <port3:node2:port4>
+                 <port1:node1:port2> <port3:node2:port4>
 
 # us default config file (recommanded)
 sshtk.py tunel --user <user> --node <node>
+```
+
+##### scp 
+
+```
+# supply user, node, password
+$ sshtk.py scp --user <user> --node <node> --password <password> \
+               --outdir ./ /absolute/remote/path/to/file1 /absolute/remote/path/to/file2
+
+# supply user, node, password, code with OTP support
+$ sshtk.py scp --user <user> --node <node> --password <password> --code <code> \
+               --outdir ./ /absolute/remote/path/to/file1 /absolute/remote/path/to/file2
+
+# use spefic config file
+$ sshtk.py scp --user <user> --node <node> --config <config> \
+               --outdir ./ /absolute/remote/path/to/file1 /absolute/remote/path/to/file2
+
+# use default config file (recommanded)
+sshtk.py scp --user <user> --node <node> \
+             --outdir ./ /absolute/remote/path/to/file1 /absolute/remote/path/to/file2
 ```
 
 ##### 备注：
