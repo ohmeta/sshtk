@@ -159,7 +159,7 @@ def tunel_func(args, unknown):
     machine, password, code, otp, config = parse(args)
 
     tunel = args.tunel
-    if not tunel is None:
+    if len(tunel) > 0:
         if args.verbose:
             for i in tunel:
                 print(f"tunel in input is {i}")
@@ -170,7 +170,7 @@ def tunel_func(args, unknown):
             for i in tunel:
                 print(f"tunel in input is {i}")
 
-    if not tunel is None:
+    if len(tunel) > 0:
         for i in tunel:
             cmd = f"""ssh -N -f -L {i} {machine}"""
             run_ssh(cmd, password, code, otp)
@@ -276,7 +276,7 @@ def parse_args():
         prog="sshtk tunel",
         help="sshtk tunel specific node, support password and OTP",
     )
-    parser_tunel.add_argument("tunel", metavar="TUNEL", nargs="?", help="ssh tunel")
+    parser_tunel.add_argument("tunel", metavar="TUNEL", nargs="*", help="ssh tunel")
     parser_tunel.set_defaults(func=tunel_func)
 
     parser_scp = subparsers.add_parser(
