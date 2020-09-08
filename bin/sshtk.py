@@ -82,14 +82,15 @@ def run_ssh(cmd, password, code, otp):
     # sys.exit()
 
 
-def parse(args, do_tunel=False):
-
+def parse(args):
+    """
+    parse user, node, password, code
+    """
     machine = f"{args.user}@{args.node}"
     print(f"{machine}")
 
     password = ""
     code = ""
-    tunel = []
     use_config = False
 
     if not args.password is None:
@@ -109,16 +110,6 @@ def parse(args, do_tunel=False):
             print(f"code is empty, using configed in {args.config}")
             use_config = True
 
-    if do_tunel:
-        if not args.tunel is None:
-            tunel = args.tunel
-            if args.verbose:
-                for i in tunel:
-                    print(f"tunel in input is {i}")
-            else:
-                print(f"tunel is empty, using configed in {args.config}")
-                use_config = True
-
     if use_config:
         config = configparser.ConfigParser()
 
@@ -133,7 +124,6 @@ def parse(args, do_tunel=False):
                     print(f"password in {args.config} is {password}")
                     if args.otp:
                         print(f"code in {args.config} is {code}")
-                tunel = config[machine]["tunel"].split(",")
             else:
                 print(
                     f"""
@@ -151,25 +141,53 @@ def parse(args, do_tunel=False):
             )
             sys.exit()
 
-    return machine, password, code, args.otp, tunel
+    return machine, password, code, args.otp, config
 
 
 def login_func(args, unknown):
     """
-    login node
+    login mode
     """
-    machine, password, code, otp, tunel = parse(args, False)
+    machine, password, code, otp, config = parse(args)
     run_ssh(f"""ssh {machine}""", password, code, otp)
 
 
 def tunel_func(args, unknown):
     """
-    tunel node
+    tunel mode
     """
-    machine, password, code, otp, tunel = parse(args, True)
-    if not tunel is None:
+    machine, password, code, otp, config = parse(args)
+
+    tunel = args.tunel
+    if len(tunel) > 0:
+        if args.verbose:
+            for i in tunel:
+                print(f"tunel in input is {i}")
+    else:
+        print(f"tunel is empty, using configed in {args.config}")
+        tunel = config[machine]["tunel"].split(",")
+        if args.verbose:
+            for i in tunel:
+                print(f"tunel in input is {i}")
+
+    if len(tunel) > 0:
         for i in tunel:
             cmd = f"""ssh -N -f -L {i} {machine}"""
+            run_ssh(cmd, password, code, otp)
+
+
+def scp_func(args, unknown):
+    """
+    scp mode
+    """
+    os.makedirs(args.outdir, exist_ok=True)
+    machine, password, code, otp, config = parse(args)
+
+    if args.files is None:
+        print("please supply absolute remote files path")
+    else:
+        for i in args.files:
+            cmd = f"scp {machine}:{i} {args.outdir}"
             run_ssh(cmd, password, code, otp)
 
 
@@ -214,14 +232,10 @@ def parse_args():
         default=DEFAULT_CONFIG,
         help=f"config file, default: {DEFAULT_CONFIG}",
     )
-    common_parser.add_argument(
-        "--tunel", "-t", dest="tunel", nargs="+", help="ssh tunel"
-    )
 
     bool_parser = argparse.ArgumentParser(add_help=False)
     bool_parser.add_argument(
         "--otp",
-        "-o",
         dest="otp",
         action="store_true",
         default=True,
@@ -232,7 +246,7 @@ def parse_args():
         dest="verbose",
         action="store_true",
         default=False,
-        help="pritn login details",
+        help="print login details",
     )
 
     subparsers = parser.add_subparsers(title="available subcommands", metavar="")
@@ -242,6 +256,9 @@ def parse_args():
         parents=[common_parser],
         prog="sshtk config",
         help=f"sshtk generate config file, default on: {DEFAULT_CONFIG}",
+    )
+    parser_config.add_argument(
+        "--tunel", "-t", dest="tunel", nargs="+", help="ssh tunel"
     )
     parser_config.set_defaults(func=config_func)
 
@@ -259,7 +276,24 @@ def parse_args():
         prog="sshtk tunel",
         help="sshtk tunel specific node, support password and OTP",
     )
+    parser_tunel.add_argument("tunel", metavar="TUNEL", nargs="*", help="ssh tunel")
     parser_tunel.set_defaults(func=tunel_func)
+
+    parser_scp = subparsers.add_parser(
+        "scp",
+        parents=[common_parser, bool_parser],
+        prog="sshtk scp",
+        help="sshtk scp remote files, support password and OTP",
+    )
+    parser_scp.add_argument(
+        "--outdir",
+        "-o",
+        dest="outdir",
+        default="./",
+        help="scp files to a directory, default: ./",
+    )
+    parser_scp.add_argument("files", metavar="FILES", nargs="+", help="scp files")
+    parser_scp.set_defaults(func=scp_func)
 
     args, unknown = parser.parse_known_args()
     try:
