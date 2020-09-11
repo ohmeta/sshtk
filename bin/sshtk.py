@@ -176,9 +176,9 @@ def tunel_func(args, unknown):
             run_ssh(cmd, password, code, otp)
 
 
-def scp_func(args, unknown):
+def dl_func(args, unknown):
     """
-    scp mode
+    scp download mode
     """
     os.makedirs(args.outdir, exist_ok=True)
     machine, password, code, otp, config = parse(args)
@@ -188,6 +188,20 @@ def scp_func(args, unknown):
     else:
         for i in args.files:
             cmd = f"scp {machine}:{i} {args.outdir}"
+            run_ssh(cmd, password, code, otp)
+
+
+def up_func(args, unknown):
+    """
+    scp upload mode
+    """
+    machine, password, code, otp, config = parse(args)
+
+    if args.files is None:
+        print("please supply local files path")
+    else:
+        for i in args.files:
+            cmd = f"scp {i} {machine}:{args.outdir}"
             run_ssh(cmd, password, code, otp)
 
 
@@ -279,21 +293,38 @@ def parse_args():
     parser_tunel.add_argument("tunel", metavar="TUNEL", nargs="*", help="ssh tunel")
     parser_tunel.set_defaults(func=tunel_func)
 
-    parser_scp = subparsers.add_parser(
-        "scp",
+    parser_dl = subparsers.add_parser(
+        "dl",
         parents=[common_parser, bool_parser],
-        prog="sshtk scp",
-        help="sshtk scp remote files, support password and OTP",
+        prog="sshtk dl",
+        help="sshtk download remote files using scp, support password and OTP",
     )
-    parser_scp.add_argument(
+    parser_dl.add_argument(
         "--outdir",
         "-o",
         dest="outdir",
+        required=True,
         default="./",
         help="scp files to a directory, default: ./",
     )
-    parser_scp.add_argument("files", metavar="FILES", nargs="+", help="scp files")
-    parser_scp.set_defaults(func=scp_func)
+    parser_dl.add_argument("files", metavar="FILES", nargs="+", help="scp files")
+    parser_dl.set_defaults(func=dl_func)
+
+    parser_up = subparsers.add_parser(
+        "up",
+        parents=[common_parser, bool_parser],
+        prog="sshtk up",
+        help="sshtk upload local files using scp, support password and OTP",
+    )
+    parser_up.add_argument(
+        "--outdir",
+        "-o",
+        dest="outdir",
+        required=True,
+        help="scp files to a directory, must be a absolute remote path",
+    )
+    parser_up.add_argument("files", metavar="FILES", nargs="+", help="scp files")
+    parser_up.set_defaults(func=up_func)
 
     args, unknown = parser.parse_known_args()
     try:

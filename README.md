@@ -13,14 +13,15 @@
 
 ### 安装：
 
-#### 解决依赖
-
 ```
 conda create -n sshtk python=3.7 mamba
-conda install -n sshtk pyotp
+mamba install -n sshtk pyotp
+
+git clone https://gitlab.genomics.cn/meta/sshtk
+export PATH=/path/to/sshtk/bin:$PATH
 ```
 
-#### Usage:
+### Usage:
 
 ```
 usage: sshtk [-h] [-v]  ...
@@ -36,8 +37,8 @@ available subcommands:
 config       sshtk generate config file, default on: ~/.sshtkrc
 login        sshtk login specific node, support password and OTP
 tunel        sshtk tunel specific node, support password and OTP
-scp          sshtk scp remote files, support password and OTP
-
+dl           sshtk download remote files using scp, support password and OTP
+up           sshtk upload local files using scp, support password and OTP
 ```
 
 ##### config
@@ -107,24 +108,44 @@ $ sshtk.py tunel --user <user> --node <node> --config <config> \
 sshtk.py tunel --user <user> --node <node>
 ```
 
-##### scp 
+##### dl
 
 ```
 # supply user, node, password
-$ sshtk.py scp --user <user> --node <node> --password <password> \
-               --outdir ./ /absolute/remote/path/to/file1 /absolute/remote/path/to/file2
+$ sshtk.py dl --user <user> --node <node> --password <password> \
+              --outdir ./ /absolute/remote/path/to/file1 /absolute/remote/path/to/file2
 
 # supply user, node, password, code with OTP support
-$ sshtk.py scp --user <user> --node <node> --password <password> --code <code> \
-               --outdir ./ /absolute/remote/path/to/file1 /absolute/remote/path/to/file2
+$ sshtk.py dl --user <user> --node <node> --password <password> --code <code> \
+              --outdir ./ /absolute/remote/path/to/file1 /absolute/remote/path/to/file2
 
 # use spefic config file
-$ sshtk.py scp --user <user> --node <node> --config <config> \
-               --outdir ./ /absolute/remote/path/to/file1 /absolute/remote/path/to/file2
+$ sshtk.py dl --user <user> --node <node> --config <config> \
+              --outdir ./ /absolute/remote/path/to/file1 /absolute/remote/path/to/file2
 
 # use default config file (recommanded)
-sshtk.py scp --user <user> --node <node> \
-             --outdir ./ /absolute/remote/path/to/file1 /absolute/remote/path/to/file2
+sshtk.py dl --user <user> --node <node> \
+            --outdir ./ /absolute/remote/path/to/file1 /absolute/remote/path/to/file2
+```
+
+##### up
+
+```
+# supply user, node, password
+$ sshtk.py up  --user <user> --node <node> --password <password> \
+               --outdir /absolute/remote/dir /local/path/to/file1 /local/path/to/file2
+
+# supply user, node, password, code with OTP support
+$ sshtk.py up --user <user> --node <node> --password <password> --code <code> \
+              --outdir /absolute/remote/dir /local/path/to/file1 /local/path/to/file2
+
+# use spefic config file
+$ sshtk.py up --user <user> --node <node> --config <config> \
+              --outdir /absolute/remote/dir /local/path/to/file1 /local/path/to/file2
+
+# use default config file (recommanded)
+sshtk.py up --user <user> --node <node> \
+            --outdir /absolute/remote/dir /local/path/to/file1 /local/path/to/file2
 ```
 
 ##### 备注：
