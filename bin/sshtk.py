@@ -7,18 +7,18 @@ __email__ = "shizhun@genomics.cn"
 __status__ = "Developing"
 
 
-import pyotp
-import pexpect
-import struct
-import fcntl
-import termios
-import signal
-import sys
-import os
-import getpass
 import argparse
 import configparser
+import fcntl
+import getpass
+import os
+import signal
+import struct
+import sys
+import termios
 
+import pexpect
+import pyotp
 
 DEFAULT_CONFIG = os.path.join(os.path.expanduser("~"), ".sshtkrc")
 
@@ -110,9 +110,9 @@ def parse(args):
             print(f"code is empty, using configed in {args.config}")
             use_config = True
 
-    if use_config:
-        config = configparser.ConfigParser()
+    config = configparser.ConfigParser()
 
+    if use_config:
         if os.path.exists(args.config):
             config.read(args.config)
 
