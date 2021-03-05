@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-__author__ = "zhun shi"
+__author__ = "Zhun Shi, Jie Zhu"
 __version__ = "0.0.3"
-__maintainer__ = "zhun shi"
-__email__ = "shizhun@genomics.cn"
+__maintainer__ = "Zhun Shi, Jie Zhu"
+__email__ = "shizhun@genomics.cn, zhujie@genomics.cn"
 __status__ = "Developing"
 
 
@@ -18,6 +18,7 @@ import os
 import getpass
 import argparse
 import configparser
+import socket
 
 
 DEFAULT_CONFIG = os.path.join(os.path.expanduser("~"), ".sshtkrc")
@@ -173,7 +174,14 @@ def tunel_func(args, unknown):
     if len(tunel) > 0:
         for i in tunel:
             cmd = f"""ssh -N -f -L {i} {machine}"""
-            run_ssh(cmd, password, code, otp)
+            port = int(i.split(":")[0])
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(3)
+            result = s.connect_ex(("127.0.0.1", port))
+            if result == 0:
+                print(f"tunel {i}: port {port} was used, pass\n")
+            else:
+                run_ssh(cmd, password, code, otp)
 
 
 def scp_func(args, unknown):
