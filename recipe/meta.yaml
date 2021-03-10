@@ -1,0 +1,43 @@
+{% set name = "sshtk" %}
+{% set version = "0.1.0" %}
+{% set sha256 = "5fdba292ee8cd3aecb5c0e2991b2a675ed321574b2f834e52698a940b448c0c7" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: https://github.com/ohmeta/{{ name }}/archive/v{{ version }}.tar.gz
+  sha256: {{ sha256 }}
+
+build:
+  number: 0
+  noarch: python
+  script: "{{ PYTHON }} -m pip install . --no-deps --ignore-installed --no-cache-dir -vvv"
+
+requirements:
+  host:
+    - python >=3.6
+    - pip
+  run:
+    - python >=3.6
+    - pyotp
+    - pexpect
+
+test:
+  commands:
+    - sshtk.py --help
+    - sshtk.py login --help
+    - sshtk.py tunel --help
+    - sshtk.py dl --help
+    - sshtk.py up --help
+
+about:
+  home: https://github.com/ohmeta/sshtk
+  summary: 'SSH toolkit'
+  license: GPL3
+  license_family: GPL
+
+extra:
+  recipe-maintainers:
+    - alienzj
