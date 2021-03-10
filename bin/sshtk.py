@@ -71,7 +71,7 @@ def run_ssh(cmd, password, code, otp):
     child.expect("Password:")
     child.sendline(password)
 
-    if otp:
+    if otp and (code != ""):
         totp = pyotp.TOTP(code)
         code = totp.now()
 

@@ -6,6 +6,7 @@
 
 ## 版本说明：v2
 
+- 使用子命令模式，支持login, tunel, dl, up
 - 弃用 expect，采用 pexpect，简化脚本
 - 解决终端窗口显示宽度异常的问题。
 
@@ -14,11 +15,7 @@
 ### 安装：
 
 ```
-conda create -n sshtk python=3.7 mamba
-mamba install -n sshtk pyotp
-
-git clone https://gitlab.genomics.cn/meta/sshtk
-export PATH=/path/to/sshtk/bin:$PATH
+mamba install -c ohmeta sshtk
 ```
 
 ### Usage:
