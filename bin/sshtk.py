@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 __author__ = "Zhun Shi, Jie Zhu"
-__version__ = "0.0.3"
+__version__ = "0.1.0"
 __maintainer__ = "Zhun Shi, Jie Zhu"
 __email__ = "shizhun@genomics.cn, zhujie@genomics.cn"
-__status__ = "Developing"
+__status__ = "Stable"
 
 
 import argparse
@@ -260,8 +260,8 @@ def parse_args():
         "--otp",
         dest="otp",
         action="store_true",
-        default=True,
-        help="login with One Time Password, default: True",
+        default=False,
+        help="login with One Time Password, default: False",
     )
     bool_parser.add_argument(
         "--verbose",
