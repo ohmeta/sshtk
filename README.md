@@ -1,21 +1,24 @@
-# sshtk
+# sshtk: ssh toolkit
 
-## 介绍：
+### Feature
+- login
+- tunel
+- download
+- upload
+- support OTP
 
-您登录集群时，是否在为双因素验证而苦恼？
 
-## 版本说明：v2
+### Installation：
 
-- 使用子命令模式，支持login, tunel, dl, up
-- 弃用 expect，采用 pexpect，简化脚本
-- 解决终端窗口显示宽度异常的问题。
-
-## 使用说明：
-
-### 安装：
-
-```
+```bash
 mamba install -c ohmeta sshtk
+
+# or
+pip install sshtk
+
+# or
+git clone https://github.com/ohmeta/sshtk
+# run /path/to/sshtk/bin/sshtk.py
 ```
 
 ### Usage:
@@ -40,7 +43,7 @@ up           sshtk upload local files using scp, support password and OTP
 
 ##### config
 
-```
+```bash
 # config without OTP support
 $ sshtk.py config --user <user> --node <node> --password <password>
 
@@ -72,91 +75,75 @@ tunel = <port1:node1:port2>,<port3:node2:port4>
 
 ##### login
 
-```
+```bash
 # supply user, node, password
 $ sshtk.py login --user <user> --node <node> --password <password>
 
 # supply user, node, password, code with OTP support
-$ sshtk.py login --user <user> --node <node> --password <password> --code <code>
+$ sshtk.py login --user <user> --node <node> --password <password> --code <code> --otp
 
-# use spefic config file
-$ sshtk.py login --user <user> --node <node> --config <config>
+# use spefic config file with OTP support
+$ sshtk.py login --user <user> --node <node> --config <config> --otp
 
 # us default config file (recommanded)
-sshtk.py login --user <user> --node <node>
+sshtk.py login --user <user> --node <node> --otp
 ```
 
 ##### tunel
 
-```
+```bash
 # supply user, node, password
 $ sshtk.py tunel --user <user> --node <node> --password <password> \
                  <port1:node1:port2> <port3:node2:port4>
 
 # supply user, node, password, code with OTP support
-$ sshtk.py tunel --user <user> --node <node> --password <password> --code <code> \
+$ sshtk.py tunel --user <user> --node <node> --password <password> --code <code> --otp \
                  <port1:node1:port2> <port3:node2:port4>
 
-# use spefic config file
-$ sshtk.py tunel --user <user> --node <node> --config <config> \
+# use spefic config file with OTP support
+$ sshtk.py tunel --user <user> --node <node> --config <config> --otp \
                  <port1:node1:port2> <port3:node2:port4>
 
 # us default config file (recommanded)
-sshtk.py tunel --user <user> --node <node>
+sshtk.py tunel --user <user> --node <node> --otp
 ```
 
 ##### dl
 
-```
+```bash
 # supply user, node, password
 $ sshtk.py dl --user <user> --node <node> --password <password> \
               --outdir ./ /absolute/remote/path/to/file1 /absolute/remote/path/to/file2
 
 # supply user, node, password, code with OTP support
-$ sshtk.py dl --user <user> --node <node> --password <password> --code <code> \
+$ sshtk.py dl --user <user> --node <node> --password <password> --code <code> --otp \
               --outdir ./ /absolute/remote/path/to/file1 /absolute/remote/path/to/file2
 
-# use spefic config file
-$ sshtk.py dl --user <user> --node <node> --config <config> \
+# use spefic config file with OTP support
+$ sshtk.py dl --user <user> --node <node> --config <config> --otp \
               --outdir ./ /absolute/remote/path/to/file1 /absolute/remote/path/to/file2
 
 # use default config file (recommanded)
-sshtk.py dl --user <user> --node <node> \
+sshtk.py dl --user <user> --node <node> --otp \
             --outdir ./ /absolute/remote/path/to/file1 /absolute/remote/path/to/file2
 ```
 
 ##### up
 
-```
+```bash
 # supply user, node, password
 $ sshtk.py up  --user <user> --node <node> --password <password> \
                --outdir /absolute/remote/dir /local/path/to/file1 /local/path/to/file2
 
 # supply user, node, password, code with OTP support
-$ sshtk.py up --user <user> --node <node> --password <password> --code <code> \
+$ sshtk.py up --user <user> --node <node> --password <password> --code <code> --otp \
               --outdir /absolute/remote/dir /local/path/to/file1 /local/path/to/file2
 
-# use spefic config file
-$ sshtk.py up --user <user> --node <node> --config <config> \
+# use spefic config file with OTP support
+$ sshtk.py up --user <user> --node <node> --config <config> --otp \
               --outdir /absolute/remote/dir /local/path/to/file1 /local/path/to/file2
 
 # use default config file (recommanded)
-sshtk.py up --user <user> --node <node> \
+sshtk.py up --user <user> --node <node> --otp \
             --outdir /absolute/remote/dir /local/path/to/file1 /local/path/to/file2
 ```
-
-##### 备注：
-
-**user** ： 集群用户名  
-**node** : 集群节点 (default : `10.225.3.7`)  
-**password** : 登录集群的密码  
-**code** :此信息来源于邮箱里的个人二维码中的信息,可使用手机浏览器扫描二维码，获取其中的 identity 信息  
-**config** : 配置文件，可随意命名，默认是 `~/.sshtkrc`
-
-##### 一键登录
-
-将上述命令行加入~/.bashrc 中，实现一键登录。
-
-**注意**：
-
-- 千万不要外传，万一被集群管理员封了就......
