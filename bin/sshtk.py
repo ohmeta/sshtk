@@ -68,18 +68,28 @@ def run_ssh(cmd, password, code, otp):
     if not child.closed:
         child.setwinsize(window_size[0], window_size[1])
 
-    child.expect("Password:")
-    child.sendline(password)
+    try_list = ["Password:", "Verification code:", pexpect.EOF, pexpect.TIMEOUT]
+    count = 6
+    while count >= 1:
+        count -= 1
+        index = child.expect(try_list)
+        if index == 0:
+            child.sendline(password)
+        elif index == 1:
+            if otp and (code != ""):
+                totp = pyotp.TOTP(code)
+                code = totp.now()
+                child.sendline(code)
+            else:
+                print(f"ssh need verification: {cmd}, please use --otp")
+                sys.exit()
+        elif index == 2:
+            print(f"ssh done: {cmd}")
+            break
+        elif index == 3:
+            print(f"ssh failed: {cmd}")
 
-    if otp and (code != ""):
-        totp = pyotp.TOTP(code)
-        code = totp.now()
-
-        child.expect("Verification code:")
-        child.sendline(code)
-        signal.signal(signal.SIGWINCH, sigwinch_passthrough)
-
-    child.interact()
+    signal.signal(signal.SIGWINCH, sigwinch_passthrough)
     # sys.exit()
 
 
