@@ -75,11 +75,13 @@ def run_ssh(cmd, password, code, otp):
         index = child.expect(try_list)
         if index == 0:
             child.sendline(password)
+            print(f"\nssh send password: {cmd}")
         elif index == 1:
             if otp and (code != ""):
                 totp = pyotp.TOTP(code)
                 code = totp.now()
                 child.sendline(code)
+                print(f"ssh send verification: {cmd}")
             else:
                 print(f"ssh need verification: {cmd}, please use --otp")
                 sys.exit()
