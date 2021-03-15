@@ -191,7 +191,7 @@ def tunel_func(args, unknown):
             s.settimeout(3)
             result = s.connect_ex(("127.0.0.1", port))
             if result == 0:
-                print(f"tunel {i}: port {port} was used, pass\n")
+                print(f"\ntunel {i}: port {port} was used, pass\n")
             else:
                 run_ssh(cmd, password, code, otp)
 
