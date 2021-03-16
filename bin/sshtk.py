@@ -62,6 +62,9 @@ def sigwinch_passthrough(sig, data):
 def run_ssh(cmd, password, code, otp):
     # auto login using expect module
     child = pexpect.spawn(cmd)
+    totp = pyotp.TOTP("")
+    if otp and (code != ""):
+        totp = pyotp.TOTP(code)
 
     # control window size
     window_size = sigwinch_passthrough(1, 2)
@@ -78,7 +81,6 @@ def run_ssh(cmd, password, code, otp):
             print(f"\nssh send password: {cmd}")
         elif index == 1:
             if otp and (code != ""):
-                totp = pyotp.TOTP(code)
                 code = totp.now()
                 child.sendline(code)
                 print(f"ssh send verification: {cmd}")
