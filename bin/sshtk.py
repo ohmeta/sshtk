@@ -72,31 +72,35 @@ def run_ssh(cmd, password, code, otp):
         child.setwinsize(window_size[0], window_size[1])
 
     try_list = ["Password:", "Verification code:", "Connection refused", pexpect.EOF, pexpect.TIMEOUT]
-    count = 6
+    count = 0
+    count_ = 0
     print(f"\nrunning: {cmd}")
     success = False
-    while count >= 1:
-        count -= 1
+    while count < 6:
+        count += 1
+        if count % 2 != 0:
+            count_ += 1
+            print(f"try {count_} time:")
         index = child.expect(try_list)
         if index == 0:
             child.sendline(password)
-            print("ssh send password")
+            print("\tssh send password")
         elif index == 1:
             if otp and (code != ""):
                 child.sendline(totp.now())
-                print("ssh send verification")
+                print("\tssh send verification")
             else:
-                print("ssh need verification, please use --otp, exiting")
+                print("\tssh need verification, please use --otp, exiting")
                 sys.exit()
         elif index == 2:
-            print("ssh refused, exiting")
+            print("\tssh refused, exiting")
             break
         elif index == 3:
-            print("ssh done, good luck to you")
+            print("\tssh done, good luck to you")
             success = True
             break
         elif index == 4:
-            print("ssh timeout, exiting")
+            print("\tssh timeout, exiting")
 
     if success:
         signal.signal(signal.SIGWINCH, sigwinch_passthrough)
@@ -200,7 +204,7 @@ def tunel_func(args, unknown):
             s.settimeout(3)
             result = s.connect_ex(("127.0.0.1", port))
             if result == 0:
-                print(f"\ntunel {i}: port {port} was used, pass\n")
+                print(f"\ntunel {i}: port {port} was used, pass")
             else:
                 run_ssh(cmd, password, code, otp)
 
