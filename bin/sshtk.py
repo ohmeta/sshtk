@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 __author__ = "Zhun Shi, Jie Zhu"
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __maintainer__ = "Zhun Shi, Jie Zhu"
 __email__ = "shizhun@genomics.cn, zhujie@genomics.cn"
 __status__ = "Stable"
