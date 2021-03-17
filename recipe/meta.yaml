@@ -1,6 +1,6 @@
 {% set name = "sshtk" %}
-{% set version = "0.1.0" %}
-{% set sha256 = "5fdba292ee8cd3aecb5c0e2991b2a675ed321574b2f834e52698a940b448c0c7" %}
+{% set version = "0.2.0" %}
+{% set sha256 = "7d2f3456731fbd6218b0b3698e0a2cac5e0720597693c0aae48f40c1dcac6a3a" %}
 
 package:
   name: {{ name|lower }}
