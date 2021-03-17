@@ -81,8 +81,7 @@ def run_ssh(cmd, password, code, otp):
             print(f"\nssh send password: {cmd}")
         elif index == 1:
             if otp and (code != ""):
-                code = totp.now()
-                child.sendline(code)
+                child.sendline(totp.now())
                 print(f"ssh send verification: {cmd}")
             else:
                 print(f"ssh need verification: {cmd}, please use --otp")
@@ -94,6 +93,7 @@ def run_ssh(cmd, password, code, otp):
             print(f"ssh failed: {cmd}")
 
     signal.signal(signal.SIGWINCH, sigwinch_passthrough)
+    child.interact()
     # sys.exit()
 
 
