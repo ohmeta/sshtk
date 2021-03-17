@@ -71,29 +71,36 @@ def run_ssh(cmd, password, code, otp):
     if not child.closed:
         child.setwinsize(window_size[0], window_size[1])
 
-    try_list = ["Password:", "Verification code:", pexpect.EOF, pexpect.TIMEOUT]
+    try_list = ["Password:", "Verification code:", "Connection refused", pexpect.EOF, pexpect.TIMEOUT]
     count = 6
+    print(f"\nrunning: {cmd}")
+    success = False
     while count >= 1:
         count -= 1
         index = child.expect(try_list)
         if index == 0:
             child.sendline(password)
-            print(f"\nssh send password: {cmd}")
+            print("ssh send password")
         elif index == 1:
             if otp and (code != ""):
                 child.sendline(totp.now())
-                print(f"ssh send verification: {cmd}")
+                print("ssh send verification")
             else:
-                print(f"ssh need verification: {cmd}, please use --otp")
+                print("ssh need verification, please use --otp, exiting")
                 sys.exit()
         elif index == 2:
-            print(f"ssh done: {cmd}")
+            print("ssh refused, exiting")
             break
         elif index == 3:
-            print(f"ssh failed: {cmd}")
+            print("ssh done, good luck to you")
+            success = True
+            break
+        elif index == 4:
+            print("ssh timeout, exiting")
 
-    signal.signal(signal.SIGWINCH, sigwinch_passthrough)
-    child.interact()
+    if success:
+        signal.signal(signal.SIGWINCH, sigwinch_passthrough)
+        child.interact()
     # sys.exit()
 
 
