@@ -71,7 +71,7 @@ def run_ssh(cmd, password, code, otp):
     if not child.closed:
         child.setwinsize(window_size[0], window_size[1])
 
-    try_list = ["Password:", "Verification code:", "Connection refused", pexpect.EOF, pexpect.TIMEOUT]
+    try_list = ["Password:", "Verification code:", "Connection refused", "Persission denied", pexpect.EOF, pexpect.TIMEOUT]
     count = 0
     count_ = 0
     print(f"\nrunning: {cmd}")
@@ -96,11 +96,15 @@ def run_ssh(cmd, password, code, otp):
             print("\tssh refused, exiting")
             break
         elif index == 3:
+            print("\tssh denied, try later")
+            break
+        elif index == 4:
             print("\tssh done, good luck to you")
             success = True
             break
-        elif index == 4:
-            print("\tssh timeout, exiting")
+        elif index == 5:
+            print("\tssh timeout, try later")
+            break
 
     if success:
         signal.signal(signal.SIGWINCH, sigwinch_passthrough)
