@@ -103,8 +103,7 @@ def run_ssh(cmd, password, code, otp):
             success = True
             break
         elif index == 5:
-            print("\tssh timeout, try later")
-            break
+            print("\tssh timeout, try again")
 
     if success:
         signal.signal(signal.SIGWINCH, sigwinch_passthrough)
