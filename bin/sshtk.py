@@ -59,8 +59,8 @@ def sigwinch_passthrough(sig, data):
     return a
 
 
-def run_ssh(cmd, password, code, otp):
-    # auto login using expect module
+def run_ssh(cmd, password, code, otp, retry):
+    # auto login using expect module,
     child = pexpect.spawn(cmd)
     totp = pyotp.TOTP("")
     if otp and (code != ""):
@@ -76,39 +76,46 @@ def run_ssh(cmd, password, code, otp):
     count_ = 0
     print(f"\nrunning: {cmd}")
     success = False
-    while count < 6:
-        count += 1
-        if count % 2 != 0:
-            count_ += 1
-            print(f"try {count_} time:")
-        index = child.expect(try_list)
-        if index == 0:
-            child.sendline(password)
-            print("\tssh send password")
-        elif index == 1:
-            if otp and (code != ""):
-                child.sendline(totp.now())
-                print("\tssh send verification")
-            else:
-                print("\tssh need verification, please use --otp, exiting")
-                sys.exit()
-        elif index == 2:
-            print("\tssh refused, exiting")
-            break
-        elif index == 3:
-            print("\tssh denied, try later")
-            break
-        elif index == 4:
-            print("\tssh done, good luck to you")
-            success = True
-            break
-        elif index == 5:
-            print("\tssh timeout, try again")
+    if retry:
+        while count < 6:
+            count += 1
+            if count % 2 != 0:
+                count_ += 1
+                print(f"try {count_} time:")
+            index = child.expect(try_list)
+            if index == 0:
+                child.sendline(password)
+                print("\tssh send password")
+            elif index == 1:
+                if otp and (code != ""):
+                    child.sendline(totp.now())
+                    print("\tssh send verification")
+                else:
+                    print("\tssh need verification, please use --otp, exiting")
+                    sys.exit()
+            elif index == 2:
+                print("\tssh refused, exiting")
+                break
+            elif index == 3:
+                print("\tssh denied, try later")
+                break
+            elif index == 4:
+                print("\tssh done, good luck to you")
+                success = True
+                break
+            elif index == 5:
+                print("\tssh timeout, try again")
 
-    if success:
+        if success:
+            signal.signal(signal.SIGWINCH, sigwinch_passthrough)
+            child.interact()
+    else:
+        child.expect(try_list[0])
+        child.sendline(password)
+        child.expect(try_list[1])
+        child.sendline(totp.now())
         signal.signal(signal.SIGWINCH, sigwinch_passthrough)
         child.interact()
-    # sys.exit()
 
 
 def parse(args):
@@ -170,22 +177,22 @@ def parse(args):
             )
             sys.exit()
 
-    return machine, password, code, args.otp, config
+    return machine, password, code, args.otp, args.retry, config
 
 
 def login_func(args, unknown):
     """
     login mode
     """
-    machine, password, code, otp, config = parse(args)
-    run_ssh(f"""ssh {machine}""", password, code, otp)
+    machine, password, code, otp, retry, config = parse(args)
+    run_ssh(f"""ssh {machine}""", password, code, otp, retry)
 
 
 def tunel_func(args, unknown):
     """
     tunel mode
     """
-    machine, password, code, otp, config = parse(args)
+    machine, password, code, otp, retry, config = parse(args)
 
     tunel = args.tunel
     if len(tunel) > 0:
@@ -209,7 +216,7 @@ def tunel_func(args, unknown):
             if result == 0:
                 print(f"\ntunel {i}: port {port} was used, pass")
             else:
-                run_ssh(cmd, password, code, otp)
+                run_ssh(cmd, password, code, otp, retry)
 
 
 def dl_func(args, unknown):
@@ -217,28 +224,28 @@ def dl_func(args, unknown):
     scp download mode
     """
     os.makedirs(args.outdir, exist_ok=True)
-    machine, password, code, otp, config = parse(args)
+    machine, password, code, otp, retry, config = parse(args)
 
     if args.files is None:
         print("please supply absolute remote files path")
     else:
         for i in args.files:
             cmd = f"scp {machine}:{i} {args.outdir}"
-            run_ssh(cmd, password, code, otp)
+            run_ssh(cmd, password, code, otp, retry)
 
 
 def up_func(args, unknown):
     """
     scp upload mode
     """
-    machine, password, code, otp, config = parse(args)
+    machine, password, code, otp, retry, config = parse(args)
 
     if args.files is None:
         print("please supply local files path")
     else:
         for i in args.files:
             cmd = f"scp {i} {machine}:{args.outdir}"
-            run_ssh(cmd, password, code, otp)
+            run_ssh(cmd, password, code, otp, retry)
 
 
 def parse_args():
@@ -290,6 +297,13 @@ def parse_args():
         action="store_true",
         default=False,
         help="login with One Time Password, default: False",
+    )
+    bool_parser.add_argument(
+        "--retry",
+        dest="retry",
+        action="store_true",
+        default=False,
+        help="ssh retry, default: False"
     )
     bool_parser.add_argument(
         "--verbose",
