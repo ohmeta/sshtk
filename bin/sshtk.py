@@ -55,7 +55,8 @@ def config_func(args, unknown):
 
 def sigwinch_passthrough(sig, data):
     s = struct.pack("HHHH", 0, 0, 0, 0)
-    a = struct.unpack("hhhh", fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, s))
+    a = struct.unpack("hhhh", fcntl.ioctl(
+        sys.stdout.fileno(), termios.TIOCGWINSZ, s))
     return a
 
 
@@ -71,7 +72,8 @@ def run_ssh(cmd, password, code, otp, retry):
     if not child.closed:
         child.setwinsize(window_size[0], window_size[1])
 
-    try_list = ["Password:", "Verification code:", "Connection refused", "Persission denied", pexpect.EOF, pexpect.TIMEOUT]
+    try_list = ["Password", "Verification code", "Connection refused",
+                "Persission denied", pexpect.EOF, pexpect.TIMEOUT]
     count = 0
     count_ = 0
     print(f"\nrunning: {cmd}")
@@ -83,6 +85,8 @@ def run_ssh(cmd, password, code, otp, retry):
                 count_ += 1
                 print(f"try {count_} time:")
             index = child.expect(try_list)
+
+            print(f"detect {try_list[index]}")
             if index == 0:
                 child.sendline(password)
                 print("\tssh send password")
@@ -271,7 +275,8 @@ def parse_args():
     common_parser.add_argument(
         "--password", "-p", dest="password", type=str, help="password"
     )
-    common_parser.add_argument("--code", "-c", dest="code", type=str, help="password")
+    common_parser.add_argument(
+        "--code", "-c", dest="code", type=str, help="password")
     common_parser.add_argument(
         "--node",
         "-n",
@@ -313,7 +318,8 @@ def parse_args():
         help="print login details",
     )
 
-    subparsers = parser.add_subparsers(title="available subcommands", metavar="")
+    subparsers = parser.add_subparsers(
+        title="available subcommands", metavar="")
 
     parser_config = subparsers.add_parser(
         "config",
@@ -340,7 +346,8 @@ def parse_args():
         prog="sshtk tunel",
         help="sshtk tunel specific node, support password and OTP",
     )
-    parser_tunel.add_argument("tunel", metavar="TUNEL", nargs="*", help="ssh tunel")
+    parser_tunel.add_argument("tunel", metavar="TUNEL",
+                              nargs="*", help="ssh tunel")
     parser_tunel.set_defaults(func=tunel_func)
 
     parser_dl = subparsers.add_parser(
@@ -357,7 +364,8 @@ def parse_args():
         default="./",
         help="scp files to a directory, default: ./",
     )
-    parser_dl.add_argument("files", metavar="FILES", nargs="+", help="scp files")
+    parser_dl.add_argument("files", metavar="FILES",
+                           nargs="+", help="scp files")
     parser_dl.set_defaults(func=dl_func)
 
     parser_up = subparsers.add_parser(
@@ -373,7 +381,8 @@ def parse_args():
         required=True,
         help="scp files to a directory, must be a absolute remote path",
     )
-    parser_up.add_argument("files", metavar="FILES", nargs="+", help="scp files")
+    parser_up.add_argument("files", metavar="FILES",
+                           nargs="+", help="scp files")
     parser_up.set_defaults(func=up_func)
 
     args, unknown = parser.parse_known_args()
