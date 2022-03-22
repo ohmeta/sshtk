@@ -45,29 +45,33 @@ up           sshtk upload local files using scp, support password and OTP
 
 ```bash
 # config without OTP support
-$ sshtk.py config --user <user> --node <node> --password <password>
+$ sshtk.py config --user <user> --node <node> --port <port> --password <password>
 
 $ cat ~/.sshtkrc
 [<user>@<node>]
+port = <port>
 password = <password>
 code =
 tunel =
 
 # config with OTP support
-$ sshtk.py config --user <user> --node <node> --password <password> --code <code>
+$ sshtk.py config --user <user> --node <node> --port <port> --password <password> --code <code>
 
 $ cat ~/.sshtkrc
 [<user>@<node>]
+port = <port>
 password = <password>
 code = <code>
 tunel =
 
 # config with OTP support, and add tunel, tunel can have multi instance
-$ sshtk.py config --user <user> --node <node> --password <password> --code <code> \
+$ sshtk.py config --user <user> --node <node> --port <port> \
+                  --password <password> --code <code> \
                   --tunel <port1:node1:port2> <port3:node2:port4>
 
 $ cat ~/.sshtkrc
 [<user>@<node>]
+port = <port>
 password = <password>
 code = <code>
 tunel = <port1:node1:port2>,<port3:node2:port4>
@@ -76,11 +80,11 @@ tunel = <port1:node1:port2>,<port3:node2:port4>
 ##### login
 
 ```bash
-# supply user, node, password
-$ sshtk.py login --user <user> --node <node> --password <password>
+# supply user, node, port, password
+$ sshtk.py login --user <user> --node <node> --port <port> --password <password>
 
-# supply user, node, password, code with OTP support
-$ sshtk.py login --user <user> --node <node> --password <password> --code <code> --otp
+# supply user, node, port, password, code with OTP support
+$ sshtk.py login --user <user> --node <node> --port <port> --password <password> --code <code> --otp
 
 # use spefic config file with OTP support
 $ sshtk.py login --user <user> --node <node> --config <config> --otp
@@ -92,12 +96,14 @@ sshtk.py login --user <user> --node <node> --otp
 ##### tunel
 
 ```bash
-# supply user, node, password
-$ sshtk.py tunel --user <user> --node <node> --password <password> \
+# supply user, node, port, password
+$ sshtk.py tunel --user <user> --node <node> --port <port> \
+                 --password <password> \
                  <port1:node1:port2> <port3:node2:port4>
 
-# supply user, node, password, code with OTP support
-$ sshtk.py tunel --user <user> --node <node> --password <password> --code <code> --otp \
+# supply user, node, port, password, code with OTP support
+$ sshtk.py tunel --user <user> --node <node> --port <port> \
+                 --password <password> --code <code> --otp \
                  <port1:node1:port2> <port3:node2:port4>
 
 # use spefic config file with OTP support
@@ -111,12 +117,12 @@ sshtk.py tunel --user <user> --node <node> --otp
 ##### dl
 
 ```bash
-# supply user, node, password
-$ sshtk.py dl --user <user> --node <node> --password <password> \
+# supply user, node, port, password
+$ sshtk.py dl --user <user> --node <node> --port <port> --password <password> \
               --outdir ./ /absolute/remote/path/to/file1 /absolute/remote/path/to/file2
 
-# supply user, node, password, code with OTP support
-$ sshtk.py dl --user <user> --node <node> --password <password> --code <code> --otp \
+# supply user, node, port, password, code with OTP support
+$ sshtk.py dl --user <user> --node <node> --port <port> --password <password> --code <code> --otp \
               --outdir ./ /absolute/remote/path/to/file1 /absolute/remote/path/to/file2
 
 # use spefic config file with OTP support
@@ -131,19 +137,19 @@ sshtk.py dl --user <user> --node <node> --otp \
 ##### up
 
 ```bash
-# supply user, node, password
-$ sshtk.py up  --user <user> --node <node> --password <password> \
+# supply user, node, port, password
+$ sshtk.py up  --user <user> --node <node> --port <port> --password <password> \
                --outdir /absolute/remote/dir /local/path/to/file1 /local/path/to/file2
 
-# supply user, node, password, code with OTP support
-$ sshtk.py up --user <user> --node <node> --password <password> --code <code> --otp \
+# supply user, node, port, password, code with OTP support
+$ sshtk.py up --user <user> --node <node> --port <port> --password <password> --code <code> --otp \
               --outdir /absolute/remote/dir /local/path/to/file1 /local/path/to/file2
 
 # use spefic config file with OTP support
-$ sshtk.py up --user <user> --node <node> --config <config> --otp \
+$ sshtk.py up --user <user> --node <node> --port <port> --config <config> --otp \
               --outdir /absolute/remote/dir /local/path/to/file1 /local/path/to/file2
 
 # use default config file (recommanded)
-sshtk.py up --user <user> --node <node> --otp \
+sshtk.py up --user <user> --node <node> --port <port> --otp \
             --outdir /absolute/remote/dir /local/path/to/file1 /local/path/to/file2
 ```

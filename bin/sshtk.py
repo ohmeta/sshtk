@@ -42,9 +42,10 @@ def config_func(args, unknown):
         tunel = ",".join(args.tunel)
 
     conf[f"{args.user}@{args.node}"] = {
-        "password": args.password,
-        "code": args.code,
-        "tunel": tunel,
+        "port": str(args.port),
+        "password": str(args.password),
+        "code": str(args.code),
+        "tunel": str(tunel),
     }
 
     with open(args.config, "w") as config_file:
@@ -55,8 +56,7 @@ def config_func(args, unknown):
 
 def sigwinch_passthrough(sig, data):
     s = struct.pack("HHHH", 0, 0, 0, 0)
-    a = struct.unpack("hhhh", fcntl.ioctl(
-        sys.stdout.fileno(), termios.TIOCGWINSZ, s))
+    a = struct.unpack("hhhh", fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, s))
     return a
 
 
@@ -72,8 +72,14 @@ def run_ssh(cmd, password, code, otp, retry):
     if not child.closed:
         child.setwinsize(window_size[0], window_size[1])
 
-    try_list = ["Password", "Verification code", "Connection refused",
-                "Persission denied", pexpect.EOF, pexpect.TIMEOUT]
+    try_list = [
+        "Password",
+        "Verification code",
+        "Connection refused",
+        "Persission denied",
+        pexpect.EOF,
+        pexpect.TIMEOUT,
+    ]
     count = 0
     count_ = 0
     print(f"\nrunning: {cmd}")
@@ -114,12 +120,18 @@ def run_ssh(cmd, password, code, otp, retry):
             signal.signal(signal.SIGWINCH, sigwinch_passthrough)
             child.interact()
     else:
-        child.expect(try_list[0])
-        child.sendline(password)
-        child.expect(try_list[1])
-        child.sendline(totp.now())
-        signal.signal(signal.SIGWINCH, sigwinch_passthrough)
-        child.interact()
+        if otp and (code != ""):
+            child.expect(try_list[0])
+            child.sendline(password)
+            child.expect(try_list[1])
+            child.sendline(totp.now())
+            signal.signal(signal.SIGWINCH, sigwinch_passthrough)
+            child.interact()
+        else:
+            child.expect("password")
+            child.sendline(password)
+            signal.signal(signal.SIGWINCH, sigwinch_passthrough)
+            child.interact()
 
 
 def parse(args):
@@ -129,6 +141,7 @@ def parse(args):
     machine = f"{args.user}@{args.node}"
     print(f"{machine}")
 
+    port = 22
     password = ""
     code = ""
     use_config = False
@@ -157,6 +170,7 @@ def parse(args):
             config.read(args.config)
 
             if machine in config:
+                port = config[machine]["port"]
                 password = config[machine]["password"]
                 if args.otp:
                     code = config[machine]["code"]
@@ -181,22 +195,22 @@ def parse(args):
             )
             sys.exit()
 
-    return machine, password, code, args.otp, args.retry, config
+    return machine, port, password, code, args.otp, args.retry, config
 
 
 def login_func(args, unknown):
     """
     login mode
     """
-    machine, password, code, otp, retry, config = parse(args)
-    run_ssh(f"""ssh {machine}""", password, code, otp, retry)
+    machine, port, password, code, otp, retry, config = parse(args)
+    run_ssh(f"""ssh {machine} -p {port}""", password, code, otp, retry)
 
 
 def tunel_func(args, unknown):
     """
     tunel mode
     """
-    machine, password, code, otp, retry, config = parse(args)
+    machine, port, password, code, otp, retry, config = parse(args)
 
     tunel = args.tunel
     if len(tunel) > 0:
@@ -212,13 +226,13 @@ def tunel_func(args, unknown):
 
     if len(tunel) > 0:
         for i in tunel:
-            cmd = f"""ssh -N -f -L {i} {machine}"""
-            port = int(i.split(":")[0])
+            cmd = f"""ssh -N -f -L {i} {machine} -p {port}"""
+            port_ = int(i.split(":")[0])
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(3)
-            result = s.connect_ex(("127.0.0.1", port))
+            result = s.connect_ex(("127.0.0.1", port_))
             if result == 0:
-                print(f"\ntunel {i}: port {port} was used, pass")
+                print(f"\ntunel {i}: port {port_} was used, pass")
             else:
                 run_ssh(cmd, password, code, otp, retry)
 
@@ -228,13 +242,13 @@ def dl_func(args, unknown):
     scp download mode
     """
     os.makedirs(args.outdir, exist_ok=True)
-    machine, password, code, otp, retry, config = parse(args)
+    machine, port, password, code, otp, retry, config = parse(args)
 
     if args.files is None:
         print("please supply absolute remote files path")
     else:
         for i in args.files:
-            cmd = f"scp {machine}:{i} {args.outdir}"
+            cmd = f"scp -P {port} {machine}:{i} {args.outdir}"
             run_ssh(cmd, password, code, otp, retry)
 
 
@@ -242,13 +256,13 @@ def up_func(args, unknown):
     """
     scp upload mode
     """
-    machine, password, code, otp, retry, config = parse(args)
+    machine, port, password, code, otp, retry, config = parse(args)
 
     if args.files is None:
         print("please supply local files path")
     else:
         for i in args.files:
-            cmd = f"scp {i} {machine}:{args.outdir}"
+            cmd = f"scp -P {port} {i} {machine}:{args.outdir}"
             run_ssh(cmd, password, code, otp, retry)
 
 
@@ -275,8 +289,7 @@ def parse_args():
     common_parser.add_argument(
         "--password", "-p", dest="password", type=str, help="password"
     )
-    common_parser.add_argument(
-        "--code", "-c", dest="code", type=str, help="password")
+    common_parser.add_argument("--code", "-c", dest="code", type=str, help="password")
     common_parser.add_argument(
         "--node",
         "-n",
@@ -285,6 +298,13 @@ def parse_args():
         required=True,
         default="ssh remote node",
         help="node",
+    )
+    common_parser.add_argument(
+        "--port",
+        dest="port",
+        type=int,
+        default=22,
+        help="port",
     )
     common_parser.add_argument(
         "--config",
@@ -308,7 +328,7 @@ def parse_args():
         dest="retry",
         action="store_true",
         default=False,
-        help="ssh retry, default: False"
+        help="ssh retry, default: False",
     )
     bool_parser.add_argument(
         "--verbose",
@@ -318,8 +338,7 @@ def parse_args():
         help="print login details",
     )
 
-    subparsers = parser.add_subparsers(
-        title="available subcommands", metavar="")
+    subparsers = parser.add_subparsers(title="available subcommands", metavar="")
 
     parser_config = subparsers.add_parser(
         "config",
@@ -346,8 +365,7 @@ def parse_args():
         prog="sshtk tunel",
         help="sshtk tunel specific node, support password and OTP",
     )
-    parser_tunel.add_argument("tunel", metavar="TUNEL",
-                              nargs="*", help="ssh tunel")
+    parser_tunel.add_argument("tunel", metavar="TUNEL", nargs="*", help="ssh tunel")
     parser_tunel.set_defaults(func=tunel_func)
 
     parser_dl = subparsers.add_parser(
@@ -364,8 +382,7 @@ def parse_args():
         default="./",
         help="scp files to a directory, default: ./",
     )
-    parser_dl.add_argument("files", metavar="FILES",
-                           nargs="+", help="scp files")
+    parser_dl.add_argument("files", metavar="FILES", nargs="+", help="scp files")
     parser_dl.set_defaults(func=dl_func)
 
     parser_up = subparsers.add_parser(
@@ -381,8 +398,7 @@ def parse_args():
         required=True,
         help="scp files to a directory, must be a absolute remote path",
     )
-    parser_up.add_argument("files", metavar="FILES",
-                           nargs="+", help="scp files")
+    parser_up.add_argument("files", metavar="FILES", nargs="+", help="scp files")
     parser_up.set_defaults(func=up_func)
 
     args, unknown = parser.parse_known_args()
